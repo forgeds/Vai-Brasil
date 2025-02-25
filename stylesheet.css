@@ -1,0 +1,155 @@
+ /* Reset básico */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Corpo da página */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      padding: 20px;
+    }
+    
+    /* Container principal */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Títulos */
+    h2 {
+      margin-bottom: 20px;
+      color: #444;
+    }
+    
+    /* Formulário de cadastro */
+    form, .cadastro {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    
+    form label, .cadastro label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="number"],
+    .cadastro input[type="text"],
+    .cadastro input[type="date"],
+    .cadastro input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    form button, .cadastro button {
+      margin-top: 10px;
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    form button:hover, .cadastro button:hover {
+      background-color: #2980b9;
+    }
+    
+    /* Tabela de dados */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    table th,
+    table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    
+    table th {
+      background-color: #3498db;
+      color: #fff;
+      font-weight: normal;
+    }
+    
+    /* Cabeçalho do contrato */
+    .contract-header {
+      background-color: #e9f5ff;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    
+    .contract-header button {
+      background-color: #2ecc71;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    
+    .contract-header button:hover {
+      background-color: #27ae60;
+    }
+    
+    /* Botões na tabela */
+    table button {
+      background-color: #2ecc71;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    table button:hover {
+      background-color: #27ae60;
+    }
+    
+    /* Botão de exportar */
+    .export-btn {
+      background-color: #e67e22;
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .export-btn:hover {
+      background-color: #d35400;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+      table, form, h2 {
+        font-size: 14px;
+      }
+      form button, .export-btn {
+        font-size: 14px;
+      }
+    }
