@@ -46,117 +46,119 @@
     </table>
 
     <script>
-        // Configuração do Supabase
-        const supabaseUrl = 'https://huugywpsouelkhnmofwd.supabase.co'; // Substitua pela sua URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dWd5d3Bzb3VlbGtobm1vZndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MDQ4NzIsImV4cCI6MjA1NjA4MDg3Mn0.VW6BL-NyEQbG334v1q6exMkpzjiP7KRqe8CCAcb9cVk'; // Substitua pela sua chave pública
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        window.onload = function() {
+            // Configuração do Supabase
+            const supabaseUrl = 'https://your-project.supabase.co'; // Substitua pela sua URL
+            const supabaseKey = 'your-public-anon-key'; // Substitua pela sua chave pública
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Função para adicionar um pagamento
-        async function adicionarPagamento() {
-            const nome = document.getElementById('nome').value.trim();
-            const cpf = document.getElementById('cpf').value.trim();
-            const contrato = document.getElementById('contrato').value.trim();
-            const valor = parseFloat(document.getElementById('valor').value);
-            const vencimentoStr = document.getElementById('vencimento').value;
-            const qtdParcelas = parseInt(document.getElementById('parcelas').value);
+            // Função para adicionar um pagamento
+            async function adicionarPagamento() {
+                const nome = document.getElementById('nome').value.trim();
+                const cpf = document.getElementById('cpf').value.trim();
+                const contrato = document.getElementById('contrato').value.trim();
+                const valor = parseFloat(document.getElementById('valor').value);
+                const vencimentoStr = document.getElementById('vencimento').value;
+                const qtdParcelas = parseInt(document.getElementById('parcelas').value);
 
-            if (!nome || !cpf || !contrato || isNaN(valor) || !vencimentoStr || isNaN(qtdParcelas) || qtdParcelas < 1) {
-                alert('Preencha todos os campos corretamente!');
-                return;
-            }
-
-            // Gerar um id único para o contrato
-            const contratoId = Date.now().toString();
-
-            for (let i = 0; i < qtdParcelas; i++) {
-                let novaData = addMonths(new Date(vencimentoStr), i);
-                let novaDataStr = novaData.toISOString().split('T')[0];
-                let parcelaObj = {
-                    contrato_id: contratoId,
-                    contrato: contrato,
-                    nome: nome,
-                    cpf: cpf,
-                    parcela: i + 1,
-                    total_parcelas: qtdParcelas,
-                    vencimento: novaDataStr,
-                    valor: valor,
-                    paid: false
-                };
-
-                // Inserir no Supabase
-                const { data, error } = await supabase
-                    .from('parcelas')  // Nome da tabela que você criou no Supabase
-                    .insert([parcelaObj]);
-
-                if (error) {
-                    alert('Erro ao adicionar pagamento: ' + error.message);
+                if (!nome || !cpf || !contrato || isNaN(valor) || !vencimentoStr || isNaN(qtdParcelas) || qtdParcelas < 1) {
+                    alert('Preencha todos os campos corretamente!');
                     return;
                 }
+
+                // Gerar um id único para o contrato
+                const contratoId = Date.now().toString();
+
+                for (let i = 0; i < qtdParcelas; i++) {
+                    let novaData = addMonths(new Date(vencimentoStr), i);
+                    let novaDataStr = novaData.toISOString().split('T')[0];
+                    let parcelaObj = {
+                        contrato_id: contratoId,
+                        contrato: contrato,
+                        nome: nome,
+                        cpf: cpf,
+                        parcela: i + 1,
+                        total_parcelas: qtdParcelas,
+                        vencimento: novaDataStr,
+                        valor: valor,
+                        paid: false
+                    };
+
+                    // Inserir no Supabase
+                    const { data, error } = await supabase
+                        .from('parcelas')  // Nome da tabela que você criou no Supabase
+                        .insert([parcelaObj]);
+
+                    if (error) {
+                        alert('Erro ao adicionar pagamento: ' + error.message);
+                        return;
+                    }
+                }
+
+                limparFormulario();
+                listarParcelas();
             }
 
-            limparFormulario();
+            // Função para listar as parcelas
+            async function listarParcelas() {
+                const { data, error } = await supabase
+                    .from('parcelas')
+                    .select('*')
+                    .order('vencimento', { ascending: true });
+
+                if (error) {
+                    alert('Erro ao carregar parcelas: ' + error.message);
+                    return;
+                }
+
+                const corpoTabela = document.getElementById('corpoTabela');
+                corpoTabela.innerHTML = '';
+
+                data.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${p.contrato} | ${p.nome} | ${p.cpf} | ${p.parcela}/${p.total_parcelas} | ${p.vencimento} | R$ ${p.valor.toFixed(2)}</td>
+                        <td><button onclick="togglePagamento(${p.id})">${p.paid ? 'Desmarcar' : 'Marcar como Pago'}</button></td>
+                    `;
+                    corpoTabela.appendChild(row);
+                });
+            }
+
+            // Função para alternar o status de pagamento
+            async function togglePagamento(id) {
+                const { data, error } = await supabase
+                    .from('parcelas')
+                    .update({ paid: true })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('Erro ao atualizar pagamento: ' + error.message);
+                    return;
+                }
+
+                listarParcelas();
+            }
+
+            // Função para limpar o formulário após cadastro
+            function limparFormulario() {
+                document.getElementById('nome').value = '';
+                document.getElementById('cpf').value = '';
+                document.getElementById('contrato').value = '';
+                document.getElementById('valor').value = '';
+                document.getElementById('vencimento').value = '';
+                document.getElementById('parcelas').value = '';
+            }
+            
+            // Função para adicionar meses a uma data
+            function addMonths(date, months) {
+                let d = new Date(date);
+                d.setMonth(d.getMonth() + months);
+                return d;
+            }
+
+            // Carregar parcelas ao iniciar
             listarParcelas();
         }
-
-        // Função para listar as parcelas
-        async function listarParcelas() {
-            const { data, error } = await supabase
-                .from('parcelas')
-                .select('*')
-                .order('vencimento', { ascending: true });
-
-            if (error) {
-                alert('Erro ao carregar parcelas: ' + error.message);
-                return;
-            }
-
-            const corpoTabela = document.getElementById('corpoTabela');
-            corpoTabela.innerHTML = '';
-
-            data.forEach(p => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${p.contrato} | ${p.nome} | ${p.cpf} | ${p.parcela}/${p.total_parcelas} | ${p.vencimento} | R$ ${p.valor.toFixed(2)}</td>
-                    <td><button onclick="togglePagamento(${p.id})">${p.paid ? 'Desmarcar' : 'Marcar como Pago'}</button></td>
-                `;
-                corpoTabela.appendChild(row);
-            });
-        }
-
-        // Função para alternar o status de pagamento
-        async function togglePagamento(id) {
-            const { data, error } = await supabase
-                .from('parcelas')
-                .update({ paid: true })
-                .eq('id', id);
-
-            if (error) {
-                alert('Erro ao atualizar pagamento: ' + error.message);
-                return;
-            }
-
-            listarParcelas();
-        }
-
-        // Função para limpar o formulário após cadastro
-        function limparFormulario() {
-            document.getElementById('nome').value = '';
-            document.getElementById('cpf').value = '';
-            document.getElementById('contrato').value = '';
-            document.getElementById('valor').value = '';
-            document.getElementById('vencimento').value = '';
-            document.getElementById('parcelas').value = '';
-        }
-        
-        // Função para adicionar meses a uma data
-        function addMonths(date, months) {
-            let d = new Date(date);
-            d.setMonth(d.getMonth() + months);
-            return d;
-        }
-
-        // Carregar parcelas ao iniciar
-        listarParcelas();
     </script>
 </body>
 </html>
