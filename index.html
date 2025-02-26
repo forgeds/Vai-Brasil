@@ -1,245 +1,345 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Parcelas</title>
-  <link href="stylesheet.css" rel="stylesheet">
-  <!-- Não é necessário incluir os scripts do Firebase no head quando usamos módulos -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Parcelas</title>
+     <link href="stylesheet.css" rel="stylesheet">
+
+    
 </head>
+
 <body>
-  <nav class="navigation-bar">
-    <div class="nav-buttons">
-      <button onclick="window.location.href='index.html'" class="nav-button">
-        <span class="nav-icon">📝</span>
-        Cadastro
-      </button>
-      <button onclick="window.location.href='Boletos.html'" class="nav-button">
-        <span class="nav-icon">📄</span>
-        Boletos
-      </button>
-      <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
-        <span class="nav-icon">⚙️</span>
-        Gerenciamento
-      </button>
+    <nav class="navigation-bar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'" class="nav-button">
+                <span class="nav-icon">📝</span>
+                Cadastro
+            </button>
+            <button onclick="window.location.href='Boletos.html'" class="nav-button">
+                <span class="nav-icon">📄</span>
+                Boletos
+            </button>
+            <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
+                <span class="nav-icon">⚙️</span>
+                Gerenciamento
+            </button>
+        </div>
+    </nav>
+    <h1>Controle de Parcelas</h1>
+
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="mostrarAba('cadastro')">Cadastro</button>
+        <button class="tab-button" onclick="mostrarAba('clientes')">Clientes</button>
+        <button onclick="exportarJSON()">Exportar JSON</button>
+        <button onclick="importarJSON()">Importar JSON</button>
+        <input type="file" id="importFile" style="display: none;" accept=".json">
     </div>
-  </nav>
-  <h1>Controle de Parcelas</h1>
 
-  <div class="tab-buttons">
-    <button class="tab-button active" onclick="mostrarAba('cadastro')">Cadastro</button>
-    <button class="tab-button" onclick="mostrarAba('clientes')">Clientes</button>
-    <button onclick="exportarJSON()">Exportar JSON</button>
-    <button onclick="importarJSON()">Importar JSON</button>
-    <input type="file" id="importFile" style="display: none;" accept=".json">
-  </div>
+    <div id="cadastro" class="tab-content">
+        <h2 id="titulo-formulario">Adicionar Pagamento</h2>
+        <form id="formPagamento">
+            <input type="hidden" id="editandoId" value="">
+            <input type="hidden" id="modoEdicao" value="false">
 
-  <div id="cadastro" class="tab-content">
-    <h2 id="titulo-formulario">Adicionar Pagamento</h2>
-    <form id="formPagamento">
-      <input type="hidden" id="editandoId" value="">
-      <input type="hidden" id="modoEdicao" value="false">
+            <div class="form-group">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" class="form-control" required>
+            </div>
 
-      <div class="form-group">
-        <label for="nome">Nome:</label>
-        <input type="text" id="nome" class="form-control" required>
-      </div>
+            <div class="form-group">
+                <label for="cpf">CPF:</label>
+                <input type="text" id="cpf" class="form-control" required>
+            </div>
 
-      <div class="form-group">
-        <label for="cpf">CPF:</label>
-        <input type="text" id="cpf" class="form-control" required>
-      </div>
+            <div class="form-group">
+                <label for="contrato">Número do Contrato:</label>
+                <input type="text" id="contrato" class="form-control" required>
+            </div>
 
-      <div class="form-group">
-        <label for="contrato">Número do Contrato:</label>
-        <input type="text" id="contrato" class="form-control" required>
-      </div>
+            <div class="form-group">
+                <label for="valorTotal">Valor Total (R$):</label>
+                <input type="number" id="valorTotal" class="form-control" required>
+            </div>
 
-      <div class="form-group">
-        <label for="valorTotal">Valor Total (R$):</label>
-        <input type="number" id="valorTotal" class="form-control" required>
-      </div>
+            <div class="form-group">
+                <label for="valorEntrada">Valor da Entrada (R$):</label>
+                <input type="number" id="valorEntrada" class="form-control" value="0">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="entradaParcelada"> Parcelar Entrada
+                </label>
+            </div>
+            
+            <div class="form-group" id="camposParcelasEntrada" style="display: none;">
+                <label for="parcelasEntrada">Número de Parcelas da Entrada:</label>
+                <input type="number" id="parcelasEntrada" class="form-control" value="1" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="temParcelas" checked> Parcelar Valor Restante
+                </label>
+            </div>
+            
 
-      <div class="form-group">
-        <label for="valorEntrada">Valor da Entrada (R$):</label>
-        <input type="number" id="valorEntrada" class="form-control" value="0">
-      </div>
-      
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="entradaParcelada"> Parcelar Entrada
-        </label>
-      </div>
-      
-      <div class="form-group" id="camposParcelasEntrada" style="display: none;">
-        <label for="parcelasEntrada">Número de Parcelas da Entrada:</label>
-        <input type="number" id="parcelasEntrada" class="form-control" value="1" min="1">
-      </div>
-      
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="temParcelas" checked> Parcelar Valor Restante
-        </label>
-      </div>
-      
+            <div id="camposParcelas">
+                <div class="form-group">
+                    <label for="parcelas">Número de Parcelas:</label>
+                    <input type="number" id="parcelas" min="1" class="form-control" value="1" required>
+                </div>
 
-      <div id="camposParcelas">
-        <div class="form-group">
-          <label for="parcelas">Número de Parcelas:</label>
-          <input type="number" id="parcelas" min="1" class="form-control" value="1" required>
+                <div class="form-group">
+                    <label for="inicioParcelas">Data de Início das Parcelas:</label>
+                    <input type="date" id="inicioParcelas" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" id="btnSalvar" onclick="adicionarPagamento()">Adicionar Pagamento</button>
+                <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar Edição</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="clientes" class="tab-content" style="display:none;">
+        <h2>Clientes e Parcelas</h2>
+
+        <div class="filter-section">
+            <div class="search-box">
+                <input type="text" id="pesquisaCliente" placeholder="Pesquisar cliente (nome, CPF ou contrato)" class="form-control">
+                <button onclick="pesquisarClientes()">Buscar</button>
+            </div>
+
+            <div>
+                <label><input type="checkbox" id="mostrarPendentes" checked> Pendentes</label>
+                <label><input type="checkbox" id="mostrarPagos" checked> Pagos</label>
+                <label><input type="checkbox" id="mostrarAtrasados" checked> Atrasados</label>
+            </div>
         </div>
 
-        <div class="form-group">
-          <label for="inicioParcelas">Data de Início das Parcelas:</label>
-          <input type="date" id="inicioParcelas" class="form-control" required>
+        <button class="toggle-all-button" onclick="toggleTodosClientes()">Expandir/Contrair Todos</button>
+
+        <div id="listaClientes">
+            <!-- Clientes serão listados aqui -->
         </div>
-      </div>
-
-      <div class="btn-group">
-        <button type="button" id="btnSalvar" onclick="adicionarPagamento()">Adicionar Pagamento</button>
-        <button type="button" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">Cancelar Edição</button>
-      </div>
-    </form>
-  </div>
-
-  <div id="clientes" class="tab-content" style="display:none;">
-    <h2>Clientes e Parcelas</h2>
-
-    <div class="filter-section">
-      <div class="search-box">
-        <input type="text" id="pesquisaCliente" placeholder="Pesquisar cliente (nome, CPF ou contrato)" class="form-control">
-        <button onclick="pesquisarClientes()">Buscar</button>
-      </div>
-
-      <div>
-        <label><input type="checkbox" id="mostrarPendentes" checked> Pendentes</label>
-        <label><input type="checkbox" id="mostrarPagos" checked> Pagos</label>
-        <label><input type="checkbox" id="mostrarAtrasados" checked> Atrasados</label>
-      </div>
     </div>
 
-    <button class="toggle-all-button" onclick="toggleTodosClientes()">Expandir/Contrair Todos</button>
-
-    <div id="listaClientes">
-      <!-- Clientes serão listados aqui -->
+    <!-- Modal de confirmação para exclusão -->
+    <div id="modalConfirmacao" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Confirmação de Exclusão</h3>
+            <p>Tem certeza que deseja excluir este contrato? Esta ação não pode ser desfeita.</p>
+            <div class="modal-buttons">
+                <button onclick="confirmarExclusao()">Sim, Excluir</button>
+                <button onclick="fecharModal()">Cancelar</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal de confirmação para exclusão -->
-  <div id="modalConfirmacao" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h3>Confirmação de Exclusão</h3>
-      <p>Tem certeza que deseja excluir este contrato? Esta ação não pode ser desfeita.</p>
-      <div class="modal-buttons">
-        <button onclick="confirmarExclusao()">Sim, Excluir</button>
-        <button onclick="fecharModal()">Cancelar</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        // Armazenamento local para parcelas
+        let parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+        let clientesExpandidos = {};
+        let contratoParaExcluir = null;
+        
 
-  <!-- Script principal com integração Firebase -->
-  <script type="module">
-    // Importar os módulos do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Mostrar/esconder campos de parcelas
+        document.getElementById('temParcelas').addEventListener('change', function() {
+            document.getElementById('camposParcelas').style.display = this.checked ? 'block' : 'none';
+        });
 
-    // Configuração do Firebase – substitua pelos seus dados
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkwjUH12X4NUfXxt6pDh5D-4MYsKdbm9Y",
-    authDomain: "vai-brasil-2f7ec.firebaseapp.com",
-    databaseURL: "https://vai-brasil-2f7ec-default-rtdb.firebaseio.com",
-    projectId: "vai-brasil-2f7ec",
-    storageBucket: "vai-brasil-2f7ec.firebasestorage.app",
-    messagingSenderId: "480537313713",
-    appId: "1:480537313713:web:e94996796a1c2a51c27d90"
-    };
+        // Adicionar data atual ao campo de início de parcelas
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('inicioParcelas').value = formattedDate;
 
-    // Inicializar o Firebase e o Firestore
-    const appFirebase = initializeApp(firebaseConfig);
-    const db = getFirestore(appFirebase);
+            // Configurar eventos para filtros
+            document.getElementById('mostrarPendentes').addEventListener('change', listarClientes);
+            document.getElementById('mostrarPagos').addEventListener('change', listarClientes);
+            document.getElementById('mostrarAtrasados').addEventListener('change', listarClientes);
+        });
 
-    // Variáveis globais
-    let clientesExpandidos = {};
-    window.contratoParaExcluir = null;
+        // Função para alternar entre abas
+        function mostrarAba(abaId) {
+            // Ocultar todas as abas
+            const abas = document.querySelectorAll('.tab-content');
+            abas.forEach(aba => aba.style.display = 'none');
 
-    // Função para adicionar pagamento (ou atualizar, se em modo de edição)
-    async function adicionarPagamento() {
-      const nome = document.getElementById('nome').value.trim();
-      const cpf = document.getElementById('cpf').value.trim();
-      const contrato = document.getElementById('contrato').value.trim();
-      const valorTotal = parseFloat(document.getElementById('valorTotal').value);
-      const valorEntrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
-      const temParcelas = document.getElementById('temParcelas').checked;
-      const entradaParcelada = document.getElementById('entradaParcelada').checked;
-      const parcelasEntrada = entradaParcelada ? parseInt(document.getElementById('parcelasEntrada').value) : 1;
-      
-      let qtdParcelas = 1;
-      let inicioParcelasStr = new Date().toISOString().split('T')[0];
+            // Mostrar a aba selecionada
+            document.getElementById(abaId).style.display = 'block';
 
-      if (temParcelas) {
+            // Atualizar botões
+            const botoes = document.querySelectorAll('.tab-button');
+            botoes.forEach(botao => botao.classList.remove('active'));
+
+            // Adicionar classe ativa ao botão selecionado
+            event.target.classList.add('active');
+
+            // Se for a aba de clientes, atualizar a lista
+            if (abaId === 'clientes') {
+                listarClientes();
+            }
+        }
+
+        // Função para adicionar um pagamento ou salvar edições
+        function adicionarPagamento() {
+    const nome = document.getElementById('nome').value.trim();
+    const cpf = document.getElementById('cpf').value.trim();
+    const contrato = document.getElementById('contrato').value.trim();
+    const valorTotal = parseFloat(document.getElementById('valorTotal').value);
+    const valorEntrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
+    const temParcelas = document.getElementById('temParcelas').checked;
+    const entradaParcelada = document.getElementById('entradaParcelada').checked;
+    const parcelasEntrada = entradaParcelada ? parseInt(document.getElementById('parcelasEntrada').value) : 1;
+    
+    let qtdParcelas = 1;
+    let inicioParcelasStr = new Date().toISOString().split('T')[0];
+
+    if (temParcelas) {
         qtdParcelas = parseInt(document.getElementById('parcelas').value);
         inicioParcelasStr = document.getElementById('inicioParcelas').value;
-      }
-
-      if (!nome || !cpf || !contrato || isNaN(valorTotal) || qtdParcelas < 1 || !inicioParcelasStr) {
-        alert('Preencha todos os campos corretamente!');
-        return;
-      }
-
-      const modoEdicao = document.getElementById('modoEdicao').value === 'true';
-      let contratoId = "";
-      if (modoEdicao) {
-        contratoId = document.getElementById('editandoId').value;
-        // Excluir parcelas antigas deste contrato
-        await excluirParcelasPorContrato(contratoId);
-      } else {
-        contratoId = Date.now().toString();
-      }
-
-      // Gerar array de parcelas
-      const novasParcelas = gerarParcelasContrato(contratoId, nome, cpf, contrato, valorTotal, valorEntrada, qtdParcelas, inicioParcelasStr, parcelasEntrada);
-      
-      try {
-        for (const parcela of novasParcelas) {
-          await addDoc(collection(db, "parcelas"), parcela);
-        }
-        alert(modoEdicao ? 'Contrato atualizado com sucesso!' : 'Pagamento cadastrado com sucesso!');
-        limparFormulario();
-        cancelarEdicao();
-        listarClientes();
-      } catch (error) {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar pagamento!");
-      }
     }
 
-    // Função que gera o array de parcelas (substitui adicionarParcelasContrato)
-    function gerarParcelasContrato(contratoId, nome, cpf, contrato, valorTotal, valorEntrada, qtdParcelas, inicioParcelasStr, parcelasEntrada = 1) {
-      const parcelasArray = [];
-      const inicioDate = new Date(inicioParcelasStr);
-      
-      // Entrada
-      if (valorEntrada > 0) {
+    if (!nome || !cpf || !contrato || isNaN(valorTotal) || qtdParcelas < 1 || !inicioParcelasStr) {
+        alert('Preencha todos os campos corretamente!');
+        return;
+    }
+
+    // Verificar se está em modo de edição
+    const modoEdicao = document.getElementById('modoEdicao').value === 'true';
+
+    if (modoEdicao) {
+        // Obter o ID do contrato sendo editado
+        const contratoId = document.getElementById('editandoId').value;
+
+        // Remover todas as parcelas do contrato
+        parcelas = parcelas.filter(p => p.contrato_id !== contratoId);
+
+        // Adicionar as novas parcelas com o mesmo ID de contrato
+        adicionarParcelasContrato(
+            contratoId, 
+            nome, 
+            cpf, 
+            contrato, 
+            valorTotal, 
+            valorEntrada, 
+            qtdParcelas, 
+            inicioParcelasStr,
+            parcelasEntrada
+        );
+
+        alert('Contrato atualizado com sucesso!');
+    } else {
+        // Gerar um id único para o novo contrato
+        const contratoId = Date.now().toString();
+
+        // Adicionar as parcelas para o novo contrato
+        adicionarParcelasContrato(
+            contratoId, 
+            nome, 
+            cpf, 
+            contrato, 
+            valorTotal, 
+            valorEntrada, 
+            qtdParcelas, 
+            inicioParcelasStr,
+            parcelasEntrada
+        );
+
+        alert('Pagamento cadastrado com sucesso!');
+    }
+
+    // Resetar o formulário e o modo de edição
+    limparFormulario();
+    cancelarEdicao();
+}
+
+        // Função auxiliar para adicionar parcelas a um contrato
+        function adicionarParcelasContrato(contratoId, nome, cpf, contrato, valorTotal, valorEntrada, qtdParcelas, inicioParcelasStr, parcelasEntrada = 1) {
+    // Verificar se tem entrada
+    if (valorEntrada > 0) {
         if (parcelasEntrada > 1) {
-          const valorParcelaEntrada = valorEntrada / parcelasEntrada;
-          for (let i = 0; i < parcelasEntrada; i++) {
-            let dataEntrada = addMonths(inicioDate, i);
-            let dataEntradaStr = dataEntrada.toISOString().split('T')[0];
-            parcelasArray.push({
-              contrato_id: contratoId,
-              contrato: contrato,
-              nome: nome,
-              cpf: cpf,
-              parcela: i + 1,
-              total_parcelas: parcelasEntrada,
-              vencimento: dataEntradaStr,
-              valor: valorParcelaEntrada,
-              paid: false,
-              tipo: "Entrada Parcelada"
-            });
-          }
+            // Entrada parcelada
+            const valorParcelaEntrada = valorEntrada / parcelasEntrada;
+            
+            // Criar parcelas da entrada
+            for (let i = 0; i < parcelasEntrada; i++) {
+                let dataEntrada = addMonths(new Date(inicioParcelasStr), i);
+                let dataEntradaStr = dataEntrada.toISOString().split('T')[0];
+
+                let parcelaEntradaObj = {
+                    id: Date.now() + i + Math.random().toString(),
+                    contrato_id: contratoId,
+                    contrato: contrato,
+                    nome: nome,
+                    cpf: cpf,
+                    parcela: i + 1,
+                    total_parcelas: parcelasEntrada,
+                    vencimento: dataEntradaStr,
+                    valor: valorParcelaEntrada,
+                    paid: false,
+                    tipo: "Entrada Parcelada"
+                };
+
+                parcelas.push(parcelaEntradaObj);
+            }
         } else {
-          parcelasArray.push({
+            // Entrada à vista
+            let entradaObj = {
+                id: Date.now() + Math.random().toString(),
+                contrato_id: contratoId,
+                contrato: contrato,
+                nome: nome,
+                cpf: cpf,
+                parcela: 1,
+                total_parcelas: 1,
+                vencimento: inicioParcelasStr,
+                valor: valorEntrada,
+                paid: false,
+                tipo: "Entrada à Vista"
+            };
+
+            parcelas.push(entradaObj);
+        }
+    }
+
+    // Calcular parcelas do valor restante
+    const valorParcelado = valorTotal - valorEntrada;
+    
+    if (qtdParcelas > 1) {
+        const valorParcela = valorParcelado / qtdParcelas;
+        const offsetMeses = valorEntrada > 0 ? parcelasEntrada : 0;
+
+        // Criar parcelas regulares
+        for (let i = 0; i < qtdParcelas; i++) {
+            let novaData = addMonths(new Date(inicioParcelasStr), i + offsetMeses);
+            let novaDataStr = novaData.toISOString().split('T')[0];
+
+            let parcelaObj = {
+                id: Date.now() + i + offsetMeses + Math.random().toString(),
+                contrato_id: contratoId,
+                contrato: contrato,
+                nome: nome,
+                cpf: cpf,
+                parcela: i + 1,
+                total_parcelas: qtdParcelas,
+                vencimento: novaDataStr,
+                valor: valorParcela,
+                paid: false,
+                tipo: "Parcela Regular"
+            };
+
+            parcelas.push(parcelaObj);
+        }
+    } else if (valorParcelado > 0) {
+        // Pagamento à vista do valor restante
+        let pagamentoVistaObj = {
+            id: Date.now() + Math.random().toString(),
             contrato_id: contratoId,
             contrato: contrato,
             nome: nome,
@@ -247,507 +347,512 @@
             parcela: 1,
             total_parcelas: 1,
             vencimento: inicioParcelasStr,
-            valor: valorEntrada,
+            valor: valorParcelado,
             paid: false,
-            tipo: "Entrada à Vista"
-          });
-        }
-      }
-      
-      // Parcelas regulares para o valor restante
-      const valorParcelado = valorTotal - valorEntrada;
-      if (qtdParcelas > 1) {
-        const valorParcela = valorParcelado / qtdParcelas;
-        const offsetMeses = valorEntrada > 0 ? parcelasEntrada : 0;
-        for (let i = 0; i < qtdParcelas; i++) {
-          let novaData = addMonths(inicioDate, i + offsetMeses);
-          let novaDataStr = novaData.toISOString().split('T')[0];
-          parcelasArray.push({
-            contrato_id: contratoId,
-            contrato: contrato,
-            nome: nome,
-            cpf: cpf,
-            parcela: i + 1,
-            total_parcelas: qtdParcelas,
-            vencimento: novaDataStr,
-            valor: valorParcela,
-            paid: false,
-            tipo: "Parcela Regular"
-          });
-        }
-      } else if (valorParcelado > 0) {
-        parcelasArray.push({
-          contrato_id: contratoId,
-          contrato: contrato,
-          nome: nome,
-          cpf: cpf,
-          parcela: 1,
-          total_parcelas: 1,
-          vencimento: inicioParcelasStr,
-          valor: valorParcelado,
-          paid: false,
-          tipo: "Pagamento à Vista"
-        });
-      }
-      return parcelasArray;
+            tipo: "Pagamento à Vista"
+        };
+
+        parcelas.push(pagamentoVistaObj);
     }
 
-    // Função para adicionar meses a uma data
-    function addMonths(date, months) {
-      let d = new Date(date);
-      d.setMonth(d.getMonth() + months);
-      return d;
-    }
+    localStorage.setItem('parcelas', JSON.stringify(parcelas));
+}
+        // Função para listar clientes e suas parcelas
+        function listarClientes() {
+            console.log('Parcelas atuais:', parcelas); // Debug line
+            const listaClientes = document.getElementById('listaClientes');
+            listaClientes.innerHTML = '';
 
-    // Função para listar os clientes, agrupando as parcelas obtidas do Firestore
-    async function listarClientes() {
-      const listaClientes = document.getElementById('listaClientes');
-      listaClientes.innerHTML = '';
+            const mostrarPendentes = document.getElementById('mostrarPendentes').checked;
+            const mostrarPagos = document.getElementById('mostrarPagos').checked;
+            const mostrarAtrasados = document.getElementById('mostrarAtrasados').checked;
+            const termoPesquisa = document.getElementById('pesquisaCliente').value.toLowerCase();
 
-      try {
-        const querySnapshot = await getDocs(collection(db, "parcelas"));
-        const parcelas = [];
-        querySnapshot.forEach((docSnap) => {
-          let data = docSnap.data();
-          data.id = docSnap.id;
-          parcelas.push(data);
-        });
+            // Agrupar parcelas por cliente (combinação de nome e CPF)
+            const clientesMap = {};
 
-        const mostrarPendentes = document.getElementById('mostrarPendentes').checked;
-        const mostrarPagos = document.getElementById('mostrarPagos').checked;
-        const mostrarAtrasados = document.getElementById('mostrarAtrasados').checked;
-        const termoPesquisa = document.getElementById('pesquisaCliente').value.toLowerCase();
+            parcelas.forEach(p => {
+                const chaveCliente = `${p.nome}_${p.cpf}`;
 
-        // Agrupar por cliente (nome + CPF)
-        const clientesMap = {};
-        parcelas.forEach(p => {
-          const chaveCliente = `${p.nome}_${p.cpf}`;
-          if (!clientesMap[chaveCliente]) {
-            clientesMap[chaveCliente] = { nome: p.nome, cpf: p.cpf, parcelas: [] };
-          }
-          clientesMap[chaveCliente].parcelas.push(p);
-        });
+                if (!clientesMap[chaveCliente]) {
+                    clientesMap[chaveCliente] = {
+                        nome: p.nome,
+                        cpf: p.cpf,
+                        parcelas: []
+                    };
+                }
 
-        const clientes = Object.values(clientesMap).sort((a, b) => a.nome.localeCompare(b.nome));
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-
-        clientes.forEach(cliente => {
-          if (termoPesquisa && !clienteCorrespondeAPesquisa(cliente, termoPesquisa)) {
-            return;
-          }
-          cliente.parcelas.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento));
-          const contratos = {};
-          cliente.parcelas.forEach(p => {
-            if (!contratos[p.contrato_id]) {
-              contratos[p.contrato_id] = { id: p.contrato_id, numero: p.contrato, parcelas: [] };
-            }
-            contratos[p.contrato_id].parcelas.push(p);
-          });
-
-          const totalParcelas = cliente.parcelas.length;
-          const parcelasPagas = cliente.parcelas.filter(p => p.paid).length;
-          const valorTotal = cliente.parcelas.reduce((sum, p) => sum + p.valor, 0);
-          const valorPago = cliente.parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
-          const temAtrasadas = cliente.parcelas.some(p => !p.paid && new Date(p.vencimento) < hoje);
-          let statusCliente = "Em dia";
-          let statusClass = "status-ok";
-          if (temAtrasadas) {
-            statusCliente = "Atrasado";
-            statusClass = "status-atrasado";
-          } else if (totalParcelas > parcelasPagas) {
-            statusCliente = "Pendente";
-            statusClass = "status-pendente";
-          }
-          if ((temAtrasadas && !mostrarAtrasados) ||
-              (parcelasPagas === totalParcelas && !mostrarPagos) ||
-              (parcelasPagas < totalParcelas && !temAtrasadas && !mostrarPendentes)) {
-            return;
-          }
-          const clienteCard = document.createElement('div');
-          clienteCard.className = 'cliente-card';
-
-          const clienteHeader = document.createElement('div');
-          clienteHeader.className = 'cliente-header';
-          clienteHeader.onclick = () => toggleParcelas(cliente.nome + cliente.cpf);
-          clienteHeader.innerHTML = `
-            <strong>${cliente.nome}</strong> (CPF: ${formatarCPF(cliente.cpf)})
-            <span class="cliente-status ${statusClass}">${statusCliente}</span>
-          `;
-
-          const clienteResumo = document.createElement('div');
-          clienteResumo.className = 'resumo-cliente';
-          clienteResumo.innerHTML = `
-            Total: R$ ${valorTotal.toFixed(2)} | 
-            Pago: R$ ${valorPago.toFixed(2)} (${parcelasPagas}/${totalParcelas} parcelas) | 
-            Restante: R$ ${(valorTotal - valorPago).toFixed(2)}
-          `;
-
-          const clienteParcelas = document.createElement('div');
-          clienteParcelas.className = 'cliente-parcelas';
-          clienteParcelas.id = `parcelas-${cliente.nome}${cliente.cpf}`;
-          if (clientesExpandidos[cliente.nome + cliente.cpf]) {
-            clienteParcelas.style.display = 'block';
-          }
-
-          let contratoHTML = "";
-          Object.values(contratos).forEach(contrato => {
-            const contratoTotal = contrato.parcelas.reduce((sum, p) => sum + p.valor, 0);
-            const contratoPago = contrato.parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
-            contratoHTML += `
-              <div class="contrato-section">
-                <div class="contrato-header">
-                  <h3>Contrato: ${contrato.numero}</h3>
-                  <div class="contrato-actions">
-                    <button onclick="editarContrato('${contrato.id}')">Editar</button>
-                    <button onclick="excluirContrato('${contrato.id}')">Excluir</button>
-                  </div>
-                </div>
-                <div class="contrato-info">
-                  Total: R$ ${contratoTotal.toFixed(2)} | 
-                  Pago: R$ ${contratoPago.toFixed(2)} | 
-                  Restante: R$ ${(contratoTotal - contratoPago).toFixed(2)}
-                </div>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Parcela</th>
-                      <th>Vencimento</th>
-                      <th>Valor (R$)</th>
-                      <th>Status</th>
-                      <th>Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-            `;
-            contrato.parcelas.forEach(p => {
-              const estahAtrasada = !p.paid && new Date(p.vencimento) < hoje;
-              let statusRow = p.paid ? 'paid' : (estahAtrasada ? 'atrasado' : '');
-              let statusText = p.paid ? 'Pago' : (estahAtrasada ? 'Atrasado' : 'Pendente');
-              let parcelaTexto = p.tipo.includes("Entrada") ? p.tipo : `${p.parcela}/${p.total_parcelas}`;
-              contratoHTML += `
-                <tr class="${statusRow}">
-                  <td>${parcelaTexto}</td>
-                  <td>${formatarData(p.vencimento)}</td>
-                  <td>R$ ${p.valor.toFixed(2)}</td>
-                  <td>${statusText}</td>
-                  <td><button onclick="togglePagamento('${p.id}', ${p.paid})">${p.paid ? 'Desmarcar' : 'Marcar como Pago'}</button></td>
-                </tr>
-              `;
+                clientesMap[chaveCliente].parcelas.push(p);
             });
-            contratoHTML += `
-                  </tbody>
-                </table>
-              </div>
-            `;
-          });
 
-          clienteParcelas.innerHTML = contratoHTML;
-          clienteCard.appendChild(clienteHeader);
-          clienteCard.appendChild(clienteResumo);
-          clienteCard.appendChild(clienteParcelas);
-          listaClientes.appendChild(clienteCard);
-        });
+            // Converter para array e ordenar por nome
+            const clientes = Object.values(clientesMap).sort((a, b) => {
+    const contratoA = a.parcelas[0]?.contrato || '';
+    const contratoB = b.parcelas[0]?.contrato || '';
+    return contratoA.localeCompare(contratoB);
+});
+            // Para cada cliente, criar um card com suas parcelas
+            clientes.forEach(cliente => {
+                // Verificar se o cliente corresponde à pesquisa
+                if (termoPesquisa && !clienteCorrespondeAPesquisa(cliente, termoPesquisa)) {
+                    return;
+                }
 
-        if (listaClientes.children.length === 0) {
-          listaClientes.innerHTML = '<p>Nenhum cliente encontrado com os filtros atuais.</p>';
+                // Ordenar parcelas por vencimento
+                cliente.parcelas.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento));
+
+                // Agrupar parcelas por contrato para exibição e ações
+                const contratos = {};
+                cliente.parcelas.forEach(p => {
+                    if (!contratos[p.contrato_id]) {
+                        contratos[p.contrato_id] = {
+                            id: p.contrato_id,
+                            numero: p.contrato,
+                            parcelas: []
+                        };
+                    }
+                    contratos[p.contrato_id].parcelas.push(p);
+                });
+
+                // Calcular estatísticas do cliente
+                const totalParcelas = cliente.parcelas.length;
+                const parcelasPagas = cliente.parcelas.filter(p => p.paid).length;
+                const valorTotal = cliente.parcelas.reduce((sum, p) => sum + p.valor, 0);
+                const valorPago = cliente.parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
+
+                // Verificar se há parcelas atrasadas
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const temAtrasadas = cliente.parcelas.some(p => !p.paid && new Date(p.vencimento) < hoje);
+
+                // Determinar o status do cliente
+                let statusCliente = "Em dia";
+                let statusClass = "status-ok";
+
+                if (temAtrasadas) {
+                    statusCliente = "Atrasado";
+                    statusClass = "status-atrasado";
+                } else if (totalParcelas > parcelasPagas) {
+                    statusCliente = "Pendente";
+                    statusClass = "status-pendente";
+                }
+
+                // Filtrar por status
+                if ((temAtrasadas && !mostrarAtrasados) ||
+                    (parcelasPagas === totalParcelas && !mostrarPagos) ||
+                    (parcelasPagas < totalParcelas && !temAtrasadas && !mostrarPendentes)) {
+                    return;
+                }
+
+                // Criar card do cliente
+                const clienteCard = document.createElement('div');
+                clienteCard.className = 'cliente-card';
+
+                // Criar cabeçalho do card
+                const clienteHeader = document.createElement('div');
+                clienteHeader.className = 'cliente-header';
+                clienteHeader.onclick = () => toggleParcelas(cliente.nome + cliente.cpf);
+
+                // Informações do cliente no cabeçalho
+                clienteHeader.innerHTML = `
+    <strong>${cliente.nome}</strong> - Contrato: ${cliente.parcelas[0].contrato} (CPF: ${formatarCPF(cliente.cpf)})
+    <span class="cliente-status ${statusClass}">${statusCliente}</span>
+`;
+
+                // Criar resumo do cliente
+                const clienteResumo = document.createElement('div');
+                clienteResumo.className = 'resumo-cliente';
+                clienteResumo.innerHTML = `
+                    Total: R$ ${valorTotal.toFixed(2)} | 
+                    Pago: R$ ${valorPago.toFixed(2)} (${parcelasPagas}/${totalParcelas} parcelas) | 
+                    Restante: R$ ${(valorTotal - valorPago).toFixed(2)}
+                `;
+
+                // Criar tabela de parcelas
+                const clienteParcelas = document.createElement('div');
+                clienteParcelas.className = 'cliente-parcelas';
+                clienteParcelas.id = `parcelas-${cliente.nome}${cliente.cpf}`;
+
+                if (clientesExpandidos[cliente.nome + cliente.cpf]) {
+                    clienteParcelas.style.display = 'block';
+                }
+
+                // Tabela de parcelas agrupadas por contrato
+                let contratoHTML = '';
+
+                // Para cada contrato do cliente
+                Object.values(contratos).forEach(contrato => {
+                    const contratoId = contrato.id;
+                    const contratoNumero = contrato.numero;
+                    const contratoTotal = contrato.parcelas.reduce((sum, p) => sum + p.valor, 0);
+                    const contratoPago = contrato.parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
+
+                    contratoHTML += `
+                        <div class="contrato-section">
+                            <div class="contrato-header">
+                                <h3>Contrato: ${contratoNumero}</h3>
+                                <div class="contrato-actions">
+                                    <button onclick="editarContrato('${contratoId}')">Editar</button>
+                                    <button onclick="excluirContrato('${contratoId}')">Excluir</button>
+                                </div>
+                            </div>
+                            <div class="contrato-info">
+                                Total: R$ ${contratoTotal.toFixed(2)} | 
+                                Pago: R$ ${contratoPago.toFixed(2)} | 
+                                Restante: R$ ${(contratoTotal - contratoPago).toFixed(2)}
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Parcela</th>
+                                        <th>Vencimento</th>
+                                        <th>Valor (R$)</th>
+                                        <th>Status</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    // Listar parcelas do contrato
+                    contrato.parcelas.forEach(p => {
+                        const estahAtrasada = !p.paid && new Date(p.vencimento) < hoje;
+                        let statusRow = p.paid ? 'paid' : (estahAtrasada ? 'atrasado' : '');
+                        let statusText = p.paid ? 'Pago' : (estahAtrasada ? 'Atrasado' : 'Pendente');
+
+                        let parcelaTexto = p.tipo === "Entrada" ? "Entrada" : `${p.parcela}/${p.total_parcelas}`;
+
+                        contratoHTML += `
+                            <tr class="${statusRow}">
+                                <td>${parcelaTexto}</td>
+                                <td>${formatarData(p.vencimento)}</td>
+                                <td>R$ ${p.valor.toFixed(2)}</td>
+                                <td>${statusText}</td>
+                                <td><button onclick="togglePagamento('${p.id}')">${p.paid ? 'Desmarcar' : 'Marcar como Pago'}</button></td>
+                            </tr>
+                        `;
+                    });
+
+                    contratoHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                });
+
+                clienteParcelas.innerHTML = contratoHTML;
+
+                // Montar o card completo
+                clienteCard.appendChild(clienteHeader);
+                clienteCard.appendChild(clienteResumo);
+                clienteCard.appendChild(clienteParcelas);
+
+                // Adicionar card à lista
+                listaClientes.appendChild(clienteCard);
+            });
+
+            if (listaClientes.children.length === 0) {
+                listaClientes.innerHTML = '<p>Nenhum cliente encontrado com os filtros atuais.</p>';
+            }
         }
-      } catch (error) {
-        console.error("Erro ao listar clientes:", error);
-      }
-    }
 
-    // Função para alterar o status de pagamento de uma parcela
-    async function togglePagamento(id, currentStatus) {
-      try {
-        const parcelaRef = doc(db, "parcelas", id);
-        await updateDoc(parcelaRef, { paid: !currentStatus });
-        listarClientes();
-      } catch (error) {
-        console.error("Erro ao atualizar status:", error);
-      }
-    }
+// Add this function to format CPF while typing
+function formatCPFInput(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+    
+    if (value.length >= 3 && value.length < 6)
+        value = value.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
+    else if (value.length >= 6 && value.length < 9)
+        value = value.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    else if (value.length >= 9)
+        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+    
+    input.value = value;
+}
 
-    // Função para editar um contrato (buscando as parcelas pelo contrato_id)
-    async function editarContrato(contratoId) {
-      try {
-        const q = query(collection(db, "parcelas"), where("contrato_id", "==", contratoId));
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-          alert('Contrato não encontrado!');
-          return;
-        }
-        let parcelasContrato = [];
-        querySnapshot.forEach(docSnap => {
-          let data = docSnap.data();
-          data.docId = docSnap.id;
-          parcelasContrato.push(data);
-        });
-        const temParcelasPagas = parcelasContrato.some(p => p.paid);
-        if (temParcelasPagas) {
-          alert('Não é possível editar um contrato que já possui parcelas pagas.');
-          return;
-        }
-        const primeiraParcelaInfo = parcelasContrato[0];
-        document.getElementById('nome').value = primeiraParcelaInfo.nome;
-        document.getElementById('cpf').value = primeiraParcelaInfo.cpf;
-        document.getElementById('contrato').value = primeiraParcelaInfo.contrato;
-        const valorTotal = parcelasContrato.reduce((sum, p) => sum + p.valor, 0);
-        document.getElementById('valorTotal').value = valorTotal;
-        const tipoEntrada = parcelasContrato.find(p => p.tipo.includes("Entrada"));
-        document.getElementById('valorEntrada').value = tipoEntrada ? tipoEntrada.valor : 0;
-        const parcelasNormais = parcelasContrato.filter(p => p.tipo === "Parcela Regular" || p.tipo === "Pagamento à Vista");
-        const temParcelas = parcelasNormais.length > 0;
-        document.getElementById('temParcelas').checked = temParcelas;
-        document.getElementById('camposParcelas').style.display = temParcelas ? 'block' : 'none';
-        if (temParcelas) {
-          document.getElementById('parcelas').value = parcelasNormais[0].total_parcelas;
-          const dataInicio = parcelasNormais.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento))[0].vencimento;
-          document.getElementById('inicioParcelas').value = dataInicio;
-        }
-        document.getElementById('modoEdicao').value = 'true';
-        document.getElementById('editandoId').value = contratoId;
-        document.getElementById('titulo-formulario').textContent = 'Editar Contrato';
-        document.getElementById('btnSalvar').textContent = 'Salvar Alterações';
-        document.getElementById('btnCancelar').style.display = 'inline-block';
-        mostrarAba('cadastro');
-      } catch (error) {
-        console.error("Erro ao editar contrato:", error);
-      }
-    }
 
-    // Função para excluir todas as parcelas de um contrato pelo contrato_id
-    async function excluirParcelasPorContrato(contratoId) {
-      try {
-        const q = query(collection(db, "parcelas"), where("contrato_id", "==", contratoId));
-        const querySnapshot = await getDocs(q);
-        for (const docSnap of querySnapshot.docs) {
-          await deleteDoc(doc(db, "parcelas", docSnap.id));
-        }
-      } catch (error) {
-        console.error("Erro ao excluir parcelas:", error);
-      }
-    }
 
-    // Função para confirmar a exclusão (usada no modal)
-    async function confirmarExclusao() {
-      if (!window.contratoParaExcluir) return;
-      try {
-        await excluirParcelasPorContrato(window.contratoParaExcluir);
+// Add this event listener to the CPF input
+document.getElementById('cpf').addEventListener('input', function() {
+    formatCPFInput(this);
+});
+
+        // Função para editar um contrato
+        function editarContrato(contratoId) {
+            // Encontrar todas as parcelas do contrato
+            const parcelasContrato = parcelas.filter(p => p.contrato_id === contratoId);
+
+            if (parcelasContrato.length === 0) {
+                alert('Contrato não encontrado!');
+                return;
+            }
+
+            // Verificar se alguma parcela já foi paga
+            const temParcelasPagas = parcelasContrato.some(p => p.paid);
+            if (temParcelasPagas) {
+                alert('Não é possível editar um contrato que já possui parcelas pagas.');
+                return;
+            }
+
+            // Obter dados do contrato a partir da primeira parcela
+            const primeiraParcelaInfo = parcelasContrato[0];
+            const tipoEntrada = parcelasContrato.find(p => p.tipo === "Entrada");
+            const parcelasNormais = parcelasContrato.filter(p => p.tipo === "Parcela");
+
+            // Preparar o formulário para edição
+            document.getElementById('nome').value = primeiraParcelaInfo.nome;
+            document.getElementById('cpf').value = primeiraParcelaInfo.cpf;
+            document.getElementById('contrato').value = primeiraParcelaInfo.contrato;
+
+            // Calcular valor total (soma de todas as parcelas)
+            const valorTotal = parcelasContrato.reduce((sum, p) => sum + p.valor, 0);
+            document.getElementById('valorTotal').value = valorTotal;
+
+            // Valor da entrada (se houver)
+            document.getElementById('valorEntrada').value = tipoEntrada ? tipoEntrada.valor : 0;
+
+            // Configurar campo de parcelas
+            const temParcelas = parcelasNormais.length > 0;
+            document.getElementById('temParcelas').checked = temParcelas;
+            document.getElementById('camposParcelas').style.display = temParcelas ? 'block' : 'none';
+
+            if (temParcelas) {
+                document.getElementById('parcelas').value = parcelasNormais[0].total_parcelas;
+
+                // Obter a data de início (primeira parcela)
+                const dataInicio = parcelasNormais.sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento))[0].vencimento;
+                document.getElementById('inicioParcelas').value = dataInicio;
+            }
+
+            // Configurar o modo de edição
+            document.getElementById('modoEdicao').value = 'true';
+            document.getElementById('editandoId').value = contratoId;
+            document.getElementById('titulo-formulario').textContent = 'Editar Contrato';
+            document.getElementById('btnSalvar').textContent = 'Salvar Alterações';
+            document.getElementById('btnCancelar').style.display = 'inline-block';
+
+            // Mudar para a aba de cadastro
+            mostrarAba('cadastro');
+        }
+
+        // Função para cancelar edição
+        function cancelarEdicao() {
+            document.getElementById('modoEdicao').value = 'false';
+            document.getElementById('editandoId').value = '';
+            document.getElementById('titulo-formulario').textContent = 'Adicionar Pagamento';
+            document.getElementById('btnSalvar').textContent = 'Adicionar Pagamento';
+            document.getElementById('btnCancelar').style.display = 'none';
+            limparFormulario();
+        }
+
+        // Função para excluir um contrato
+        function excluirContrato(contratoId) {
+            // Armazenar o ID do contrato para exclusão
+            contratoParaExcluir = contratoId;
+
+            // Mostrar modal de confirmação
+            document.getElementById('modalConfirmacao').style.display = 'block';
+        }
+
+        // Função para confirmar a exclusão do contrato
+       // Função para confirmar a exclusão do contrato
+       function confirmarExclusao() {
+    if (!contratoParaExcluir) return;
+
+    try {
+        // Remove all installments related to the contract
+        parcelas = parcelas.filter(p => p.contrato_id !== contratoParaExcluir);
+
+        // Save changes to localStorage
+        localStorage.setItem('parcelas', JSON.stringify(parcelas));
+
+        // Close modal
         document.getElementById('modalConfirmacao').style.display = 'none';
-        window.contratoParaExcluir = null;
-        listarClientes();
+        contratoParaExcluir = null;
+
+        // Force refresh the client list
+        setTimeout(() => {
+            listarClientes();
+        }, 100);
+
         alert('Contrato excluído com sucesso!');
-      } catch (error) {
+    } catch (error) {
         console.error('Erro ao excluir:', error);
         alert('Erro ao excluir o contrato. Por favor, tente novamente.');
-      }
     }
-
-    // Define o contrato a ser excluído e exibe o modal de confirmação
-    function excluirContrato(contratoId) {
-      window.contratoParaExcluir = contratoId;
-      document.getElementById('modalConfirmacao').style.display = 'block';
+}
+        // Função para fechar o modal de confirmação
+        function fecharModal() {
+    const modal = document.getElementById('modalConfirmacao');
+    if (modal) {
+        modal.style.display = 'none';
+        contratoParaExcluir = null;
+        listarClientes(); // Force refresh
     }
+}
+        // Função para formatar CPF
+        function formatarCPF(cpf) {
+            // Remover caracteres não numéricos
+            cpf = cpf.replace(/\D/g, '');
 
-    // Função para fechar o modal de confirmação
-    function fecharModal() {
-      document.getElementById('modalConfirmacao').style.display = 'none';
-      window.contratoParaExcluir = null;
-      listarClientes();
-    }
-
-    // Função para formatar CPF (xxx.xxx.xxx-xx)
-    function formatarCPF(cpf) {
-      cpf = cpf.replace(/\D/g, '');
-      if (cpf.length === 11) {
-        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      }
-      return cpf;
-    }
-
-    // Verifica se o cliente corresponde ao termo de pesquisa
-    function clienteCorrespondeAPesquisa(cliente, termo) {
-      const nome = cliente.nome.toLowerCase();
-      const cpf = cliente.cpf.toLowerCase();
-      const contratos = [...new Set(cliente.parcelas.map(p => p.contrato.toLowerCase()))];
-      return nome.includes(termo) ||
-             cpf.includes(termo) ||
-             contratos.some(c => c.includes(termo));
-    }
-
-    // Alterna a exibição das parcelas de um cliente
-    function toggleParcelas(clienteId) {
-      const parcelasDiv = document.getElementById(`parcelas-${clienteId}`);
-      if (parcelasDiv.style.display === 'none' || !parcelasDiv.style.display) {
-        parcelasDiv.style.display = 'block';
-        clientesExpandidos[clienteId] = true;
-      } else {
-        parcelasDiv.style.display = 'none';
-        clientesExpandidos[clienteId] = false;
-      }
-    }
-
-    // Alterna a exibição de todos os clientes
-    function toggleTodosClientes() {
-      const todosExpandidos = Object.values(clientesExpandidos).every(v => v);
-      const divsParcelas = document.querySelectorAll('.cliente-parcelas');
-      divsParcelas.forEach(div => {
-        const clienteId = div.id.replace('parcelas-', '');
-        div.style.display = todosExpandidos ? 'none' : 'block';
-        clientesExpandidos[clienteId] = !todosExpandidos;
-      });
-    }
-
-    // Função para pesquisar clientes
-    function pesquisarClientes() {
-      listarClientes();
-    }
-
-    // Formata data (YYYY-MM-DD para DD/MM/YYYY)
-    function formatarData(dataStr) {
-      const data = new Date(dataStr);
-      return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
-    }
-
-    // Cancela o modo de edição e reseta o formulário
-    function cancelarEdicao() {
-      document.getElementById('modoEdicao').value = 'false';
-      document.getElementById('editandoId').value = '';
-      document.getElementById('titulo-formulario').textContent = 'Adicionar Pagamento';
-      document.getElementById('btnSalvar').textContent = 'Adicionar Pagamento';
-      document.getElementById('btnCancelar').style.display = 'none';
-      limparFormulario();
-    }
-
-    // Limpa os campos do formulário
-    function limparFormulario() {
-      document.getElementById('nome').value = '';
-      document.getElementById('cpf').value = '';
-      document.getElementById('contrato').value = '';
-      document.getElementById('valorTotal').value = '';
-      document.getElementById('valorEntrada').value = '0';
-      document.getElementById('parcelas').value = '1';
-      const today = new Date();
-      document.getElementById('inicioParcelas').value = today.toISOString().split('T')[0];
-    }
-
-    // Função para exportar os dados em JSON (opcional)
-    async function exportarJSON() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "parcelas"));
-        const allData = [];
-        querySnapshot.forEach(docSnap => {
-          let data = docSnap.data();
-          data.id = docSnap.id;
-          allData.push(data);
-        });
-        const dados = {
-          parcelas: allData,
-          dataExportacao: new Date().toISOString()
-        };
-        const jsonString = JSON.stringify(dados, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `controle-parcelas-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Erro ao exportar JSON:", error);
-      }
-    }
-
-    // Função para importar dados em JSON (opcional)
-    function importarJSON() {
-      const input = document.getElementById('importFile');
-      input.onchange = async function(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = async function(event) {
-          try {
-            const dados = JSON.parse(event.target.result);
-            if (!dados.parcelas || !Array.isArray(dados.parcelas)) {
-              throw new Error('Formato de arquivo inválido');
+            // Formatar o CPF (xxx.xxx.xxx-xx)
+            if (cpf.length === 11) {
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
             }
-            if (confirm('Isso irá substituir todos os dados existentes. Deseja continuar?')) {
-              // Para simplificar, adicionamos os documentos sem excluir os existentes
-              for (const parcela of dados.parcelas) {
-                await addDoc(collection(db, "parcelas"), parcela);
-              }
-              listarClientes();
-              alert('Dados importados com sucesso!');
+
+            return cpf;
+        }
+
+        // Função para verificar se o cliente corresponde à pesquisa
+        function clienteCorrespondeAPesquisa(cliente, termo) {
+            const nome = cliente.nome.toLowerCase();
+            const cpf = cliente.cpf.toLowerCase();
+            const contratos = [...new Set(cliente.parcelas.map(p => p.contrato.toLowerCase()))];
+
+            return nome.includes(termo) ||
+                cpf.includes(termo) ||
+                contratos.some(c => c.includes(termo));
+        }
+
+        // Função para expandir/contrair lista de parcelas
+        function toggleParcelas(clienteId) {
+            const parcelasDiv = document.getElementById(`parcelas-${clienteId}`);
+
+            if (parcelasDiv.style.display === 'none' || !parcelasDiv.style.display) {
+                parcelasDiv.style.display = 'block';
+                clientesExpandidos[clienteId] = true;
+            } else {
+                parcelasDiv.style.display = 'none';
+                clientesExpandidos[clienteId] = false;
             }
-          } catch (error) {
-            alert('Erro ao importar arquivo: ' + error.message);
-          }
-          input.value = '';
-        };
-        reader.readAsText(file);
-      };
-      input.click();
+        }
+
+        // Função para expandir/contrair todos os clientes
+        function toggleTodosClientes() {
+            const todosExpandidos = Object.values(clientesExpandidos).every(v => v);
+            const divsParcelas = document.querySelectorAll('.cliente-parcelas');
+
+            divsParcelas.forEach(div => {
+                const clienteId = div.id.replace('parcelas-', '');
+                div.style.display = todosExpandidos ? 'none' : 'block';
+                clientesExpandidos[clienteId] = !todosExpandidos;
+            });
+        }
+
+        // Função para pesquisar clientes
+        function pesquisarClientes() {
+            listarClientes();
+        }
+
+        // Função para formatar data (YYYY-MM-DD para DD/MM/YYYY)
+        function formatarData(dataStr) {
+            const data = new Date(dataStr);
+            return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
+        }
+
+        // Função para alternar o status de pagamento
+        function togglePagamento(id) {
+            const index = parcelas.findIndex(p => p.id === id);
+            if (index !== -1) {
+                parcelas[index].paid = !parcelas[index].paid;
+                localStorage.setItem('parcelas', JSON.stringify(parcelas));
+                listarClientes();
+            }
+        }
+
+        // Função para limpar o formulário após cadastro
+        function limparFormulario() {
+            document.getElementById('nome').value = '';
+            document.getElementById('cpf').value = '';
+            document.getElementById('contrato').value = '';
+            document.getElementById('valorTotal').value = '';
+            document.getElementById('valorEntrada').value = '0';
+            document.getElementById('parcelas').value = '1';
+            const today = new Date();
+            document.getElementById('inicioParcelas').value = today.toISOString().split('T')[0];
+        }
+
+        // Função para adicionar meses a uma data
+       // Função para adicionar meses a uma data
+function addMonths(date, months) {
+    let d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    d.setDate(d.getDate() + 1); // Adiciona um dia para compensar
+    return d;
+}
+        // Função para exportar dados em JSON
+        function exportarJSON() {
+            const dados = {
+                parcelas: parcelas,
+                dataExportacao: new Date().toISOString()
+            };
+
+            const jsonString = JSON.stringify(dados, null, 2);
+            const blob = new Blob([jsonString], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `controle-parcelas-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Função para importar dados em JSON
+        function importarJSON() {
+            const input = document.getElementById('importFile');
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    try {
+                        const dados = JSON.parse(event.target.result);
+
+                        if (!dados.parcelas || !Array.isArray(dados.parcelas)) {
+                            throw new Error('Formato de arquivo inválido');
+                        }
+
+                        // Confirmar antes de substituir os dados
+                        if (confirm('Isso irá substituir todos os dados existentes. Deseja continuar?')) {
+                            parcelas = dados.parcelas;
+                            localStorage.setItem('parcelas', JSON.stringify(parcelas));
+                            listarClientes();
+                            alert('Dados importados com sucesso!');
+                        }
+                    } catch (error) {
+                        alert('Erro ao importar arquivo: ' + error.message);
+                    }
+
+                    // Limpar o input para permitir importar o mesmo arquivo novamente
+                    input.value = '';
+                };
+
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+// Controlar visibilidade do campo de parcelas da entrada
+document.getElementById('entradaParcelada').addEventListener('change', function() {
+    document.getElementById('camposParcelasEntrada').style.display = this.checked ? 'block' : 'none';
+});
+
+// Atualizar o valor mínimo de parcelas da entrada
+document.getElementById('valorEntrada').addEventListener('input', function() {
+    const valorEntrada = parseFloat(this.value) || 0;
+    if (valorEntrada === 0) {
+        document.getElementById('entradaParcelada').checked = false;
+        document.getElementById('camposParcelasEntrada').style.display = 'none';
     }
+});
 
-    // Formatação do CPF enquanto o usuário digita
-    function formatCPFInput(input) {
-      let value = input.value.replace(/\D/g, '');
-      if (value.length > 11) value = value.slice(0, 11);
-      if (value.length >= 3 && value.length < 6)
-        value = value.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
-      else if (value.length >= 6 && value.length < 9)
-        value = value.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-      else if (value.length >= 9)
-        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-      input.value = value;
-    }
-    document.getElementById('cpf').addEventListener('input', function() {
-      formatCPFInput(this);
-    });
-
-    // Eventos iniciais
-    document.getElementById('temParcelas').addEventListener('change', function() {
-      document.getElementById('camposParcelas').style.display = this.checked ? 'block' : 'none';
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const today = new Date();
-      document.getElementById('inicioParcelas').value = today.toISOString().split('T')[0];
-      document.getElementById('mostrarPendentes').addEventListener('change', listarClientes);
-      document.getElementById('mostrarPagos').addEventListener('change', listarClientes);
-      document.getElementById('mostrarAtrasados').addEventListener('change', listarClientes);
-      listarClientes();
-    });
-
-    // Função para alternar entre abas
-    function mostrarAba(abaId) {
-      const abas = document.querySelectorAll('.tab-content');
-      abas.forEach(aba => aba.style.display = 'none');
-      document.getElementById(abaId).style.display = 'block';
-      const botoes = document.querySelectorAll('.tab-button');
-      botoes.forEach(botao => botao.classList.remove('active'));
-      event.target.classList.add('active');
-      if (abaId === 'clientes') {
-        listarClientes();
-      }
-    }
-
-    // Expõe as funções para o escopo global (usado nos onclick dos botões)
-    window.adicionarPagamento = adicionarPagamento;
-    window.listarClientes = listarClientes;
-    window.togglePagamento = togglePagamento;
-    window.editarContrato = editarContrato;
-    window.excluirContrato = excluirContrato;
-    window.confirmarExclusao = confirmarExclusao;
-    window.fecharModal = fecharModal;
-    window.toggleParcelas = toggleParcelas;
-    window.toggleTodosClientes = toggleTodosClientes;
-    window.pesquisarClientes = pesquisarClientes;
-    window.exportarJSON = exportarJSON;
-    window.importarJSON = importarJSON;
-    window.cancelarEdicao = cancelarEdicao;
-  </script>
+    </script>
 </body>
+
 </html>
