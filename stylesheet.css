@@ -1,155 +1,284 @@
- /* Reset básico */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+/* Base styles for dark mode */
+:root {
+    --background-color: #121212;
+    --card-background: #1e1e1e;
+    --text-color: #e0e0e0;
+    --primary-color: #4caf50;
+    --secondary-color: #2196f3;
+    --danger-color: #f44336;
+    --border-color: #333;
+    --hover-color: #333333;
+    --input-background: #2a2a2a;
+    --input-border: #444;
+    --input-focus: #4caf50;
+    --button-hover: #3e8e41;
+    --modal-background: rgba(0, 0, 0, 0.8);
+}
+
+/* General body styling */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+/* Headings */
+h1, h2, h3 {
+    color: var(--primary-color);
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+tr:hover {
+    background-color: var(--hover-color);
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    background-color: var(--input-background);
+    color: var(--text-color);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--input-focus);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+}
+
+/* Button styling */
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+    font-size: 0.95rem;
+    color: #4caf50;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+button.primary {
+    background-color: var(--primary-color);
+}
+
+button.primary:hover {
+    background-color: var(--button-hover);
+}
+
+button.secondary {
+    background-color: var(--secondary-color);
+}
+
+button.secondary:hover {
+    background-color: #1976d2;
+}
+
+button.danger {
+    background-color: var(--danger-color);
+}
+
+button.danger:hover {
+    background-color: #d32f2f;
+}
+
+/* Card styling */
+.cliente-card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.cliente-card:hover {
+    transform: translateY(-2px);
+}
+
+.cliente-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 12px;
+    background-color: var(--hover-color);
+    border-radius: 6px;
+    margin: -16px -16px 16px -16px;
+}
+
+.cliente-status {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.status-ok {
+    color: var(--primary-color);
+}
+
+.status-pendente {
+    color: #ffc107;
+}
+
+.status-atrasado {
+    color: var(--danger-color);
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--modal-background);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    margin: 10% auto;
+    width: 80%;
+    max-width: 600px;
+    color: var(--text-color);
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/* Search box styling */
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: var(--card-background);
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.search-box input {
+    flex-grow: 1;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background-color: var(--input-background);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.search-box button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-box button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Tab buttons */
+.tab-buttons {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.tab-button {
+    padding: 10px 16px;
+    cursor: pointer;
+    background-color: var(--hover-color);
+    border: none;
+    border-radius: 6px;
+    margin-right: 5px;
+    color: var(--text-color);
+    transition: background-color 0.2s ease;
+}
+
+.tab-button.active {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.tab-button:hover {
+    background-color: var(--primary-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .form-group {
+        margin-bottom: 15px;
     }
-    
-    /* Corpo da página */
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
-      padding: 20px;
+
+    button {
+        width: 100%;
+        margin-bottom: 10px;
     }
-    
-    /* Container principal */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+
+    .search-box {
+        flex-direction: column;
     }
-    
-    /* Títulos */
-    h2 {
-      margin-bottom: 20px;
-      color: #444;
+
+    .search-box input {
+        margin-bottom: 10px;
     }
-    
-    /* Formulário de cadastro */
-    form, .cadastro {
-      background: #fff;
-      padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-    }
-    
-    form label, .cadastro label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-    
-    form input[type="text"],
-    form input[type="date"],
-    form input[type="number"],
-    .cadastro input[type="text"],
-    .cadastro input[type="date"],
-    .cadastro input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    
-    form button, .cadastro button {
-      margin-top: 10px;
-      background-color: #3498db;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    
-    form button:hover, .cadastro button:hover {
-      background-color: #2980b9;
-    }
-    
-    /* Tabela de dados */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: #fff;
-      margin-bottom: 30px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    table th,
-    table td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    
-    table th {
-      background-color: #3498db;
-      color: #fff;
-      font-weight: normal;
-    }
-    
-    /* Cabeçalho do contrato */
-    .contract-header {
-      background-color: #e9f5ff;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    
-    .contract-header button {
-      background-color: #2ecc71;
-      border: none;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-left: 10px;
-    }
-    
-    .contract-header button:hover {
-      background-color: #27ae60;
-    }
-    
-    /* Botões na tabela */
-    table button {
-      background-color: #2ecc71;
-      border: none;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    
-    table button:hover {
-      background-color: #27ae60;
-    }
-    
-    /* Botão de exportar */
-    .export-btn {
-      background-color: #e67e22;
-      border: none;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-    
-    .export-btn:hover {
-      background-color: #d35400;
-    }
-    
-    /* Responsividade */
-    @media (max-width: 768px) {
-      table, form, h2 {
-        font-size: 14px;
-      }
-      form button, .export-btn {
-        font-size: 14px;
-      }
-    }
+}

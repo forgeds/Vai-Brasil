@@ -1,0 +1,249 @@
+<!-- gerenciar-pagamentos.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Pagamentos</title>
+    <link href="stylesheet.css" rel="stylesheet">
+    <style>
+        .payment-manager {
+            padding: 20px;
+        }
+
+        .summary-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .summary-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .payment-edit-form {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .payment-list {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 50px auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation-bar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'" class="nav-button">
+                <span class="nav-icon">📝</span>
+                Cadastro
+            </button>
+            <button onclick="window.location.href='Boletos.html'" class="nav-button">
+                <span class="nav-icon">📄</span>
+                Boletos
+            </button>
+            <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
+                <span class="nav-icon">⚙️</span>
+                Gerenciamento
+            </button>
+        </div>
+    </nav>
+    <div class="payment-manager">
+        <h1>Gerenciar Pagamentos</h1>
+
+        <div class="summary-tabs">
+            <div class="summary-card">
+                <h3>Valor a Receber</h3>
+                <p id="valorReceber">R$ 0,00</p>
+            </div>
+            <div class="summary-card">
+                <h3>Valor Recebido</h3>
+                <p id="valorRecebido">R$ 0,00</p>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchPayment" placeholder="Pesquisar por nome, CPF ou contrato">
+            <button onclick="searchPayments()">Buscar</button>
+        </div>
+
+        <div id="paymentList" class="payment-list"></div>
+    </div>
+
+    <!-- Modal de edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Editar Pagamento</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editValue">Valor:</label>
+                    <input type="number" id="editValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDate">Data de Vencimento:</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Salvar</button>
+                    <button type="button" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let payments = JSON.parse(localStorage.getItem('parcelas') || '[]');
+
+        function updateSummary() {
+            const total = payments.reduce((sum, p) => sum + p.valor, 0);
+            const received = payments.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
+            
+            document.getElementById('valorReceber').textContent = `R$ ${(total - received).toFixed(2)}`;
+            document.getElementById('valorRecebido').textContent = `R$ ${received.toFixed(2)}`;
+        }
+
+        function displayPayments(filteredPayments = null) {
+            const list = document.getElementById('paymentList');
+            const paymentsToShow = filteredPayments || payments;
+            
+            list.innerHTML = '';
+            
+            // Agrupar por contrato
+            const contracts = {};
+            paymentsToShow.forEach(p => {
+                if (!contracts[p.contrato_id]) {
+                    contracts[p.contrato_id] = [];
+                }
+                contracts[p.contrato_id].push(p);
+            });
+
+            Object.entries(contracts).forEach(([contractId, contractPayments]) => {
+                const contractDiv = document.createElement('div');
+                contractDiv.className = 'contract-group';
+                
+                const firstPayment = contractPayments[0];
+                contractDiv.innerHTML = `
+                    <h3>Contrato: ${firstPayment.contrato} - ${firstPayment.nome}</h3>
+                    ${contractPayments.map(p => `
+                        <div class="payment-item">
+                            <div>
+                               <span>Parcela ${p.parcela}/${p.total_parcelas}</span>
+                                <span>Vencimento: ${new Date(p.vencimento).toLocaleDateString()}</span>
+                                <span>Valor: R$ ${p.valor.toFixed(2)}</span>
+                                <span>Status: ${p.paid ? 'Pago' : 'Pendente'}</span>
+                            </div>
+                            <div class="payment-actions">
+                                <button onclick="editPayment('${p.id}')">Editar</button>
+                                <button onclick="deletePayment('${p.id}')">Excluir</button>
+                                <button onclick="togglePaymentStatus('${p.id}')">${p.paid ? 'Desmarcar' : 'Marcar'} como Pago</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+                
+                list.appendChild(contractDiv);
+            });
+        }
+
+        function searchPayments() {
+            const searchTerm = document.getElementById('searchPayment').value.toLowerCase();
+            const filtered = payments.filter(p => 
+                p.nome.toLowerCase().includes(searchTerm) ||
+                p.cpf.toLowerCase().includes(searchTerm) ||
+                p.contrato.toLowerCase().includes(searchTerm)
+            );
+            displayPayments(filtered);
+        }
+
+        function editPayment(id) {
+            const payment = payments.find(p => p.id === id);
+            if (!payment) return;
+
+            document.getElementById('editValue').value = payment.valor;
+            document.getElementById('editDate').value = payment.vencimento;
+            
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'block';
+            
+            document.getElementById('editForm').onsubmit = (e) => {
+                e.preventDefault();
+                payment.valor = parseFloat(document.getElementById('editValue').value);
+                payment.vencimento = document.getElementById('editDate').value;
+                
+                localStorage.setItem('parcelas', JSON.stringify(payments));
+                closeModal();
+                displayPayments();
+                updateSummary();
+            };
+        }
+
+        function deletePayment(id) {
+            if (confirm('Tem certeza que deseja excluir esta parcela?')) {
+                payments = payments.filter(p => p.id !== id);
+                localStorage.setItem('parcelas', JSON.stringify(payments));
+                displayPayments();
+                updateSummary();
+            }
+        }
+
+        function togglePaymentStatus(id) {
+            const payment = payments.find(p => p.id === id);
+            if (payment) {
+                payment.paid = !payment.paid;
+                localStorage.setItem('parcelas', JSON.stringify(payments));
+                displayPayments();
+                updateSummary();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            displayPayments();
+            updateSummary();
+        });
+    </script>
+</body>
+</html>

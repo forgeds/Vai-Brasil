@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status de Pagamentos</title>
+    <link href="stylesheet.css" rel="stylesheet">
+    <style>
+      .status-card {
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.vencimento-proximo {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+}
+
+.atrasado {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.pendente {
+    background-color: #e2e3e5;
+    border: 1px solid #d6d8db;
+    color: #383d41;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+    </style>
+</head>
+<body>
+    <nav class="navigation-bar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'" class="nav-button">
+                <span class="nav-icon">📝</span>
+                Cadastro
+            </button>
+            <button onclick="window.location.href='Boletos.html'" class="nav-button">
+                <span class="nav-icon">📄</span>
+                Boletos
+            </button>
+            <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
+                <span class="nav-icon">⚙️</span>
+                Gerenciamento
+            </button>
+        </div>
+    </nav>
+    <h1>Status de Pagamentos</h1>
+
+    <div class="search-box">
+        <input type="text" id="pesquisaCliente" placeholder="Pesquisar por nome, CPF ou contrato">
+        <button onclick="filtrarPagamentos()">Buscar</button>
+    </div>
+
+    <div id="statusPagamentos"></div>
+
+    <script>
+        function carregarPagamentos() {
+            const parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            const statusContainer = document.getElementById('statusPagamentos');
+            statusContainer.innerHTML = '';
+
+            const termoPesquisa = document.getElementById('pesquisaCliente').value.toLowerCase();
+
+            // Agrupar por cliente
+            const clientesMap = {};
+
+            parcelas.forEach(parcela => {
+                if (!parcela.paid) {
+                    const dataVencimento = new Date(parcela.vencimento);
+                    const diasAteVencimento = Math.floor((dataVencimento - hoje) / (1000 * 60 * 60 * 24));
+
+                    const chaveCliente = `${parcela.nome}_${parcela.cpf}`;
+
+                    if (!clientesMap[chaveCliente]) {
+                        clientesMap[chaveCliente] = {
+                            nome: parcela.nome,
+                            cpf: parcela.cpf,
+                            parcelas: []
+                        };
+                    }
+
+                    clientesMap[chaveCliente].parcelas.push({
+                        ...parcela,
+                        diasAteVencimento
+                    });
+                }
+            });
+
+            // Filtrar e exibir resultados
+            Object.values(clientesMap).forEach(cliente => {
+                if (termoPesquisa && !clienteCorrespondeAPesquisa(cliente, termoPesquisa)) {
+                    return;
+                }
+
+                if (cliente.parcelas.length > 0) {
+                    const clienteDiv = document.createElement('div');
+                    clienteDiv.className = 'cliente-card';
+
+                    let parcelasHTML = '';
+
+                    cliente.parcelas.forEach(parcela => {
+                        let statusClass = '';
+                        let statusText = '';
+
+                        if (parcela.diasAteVencimento < 0) {
+                            statusClass = 'atrasado';
+                            statusText = `Atrasado (${Math.abs(parcela.diasAteVencimento)} dias)`;
+                        } else if (parcela.diasAteVencimento <= 10) {
+                            statusClass = 'vencimento-proximo';
+                            statusText = `Vence em ${parcela.diasAteVencimento} dias`;
+                        } else {
+                            statusClass = 'pendente';
+                            statusText = 'Pendente';
+                        }
+
+                        parcelasHTML += `
+    <div class="status-card ${statusClass}">
+        <p>Parcela: ${parcela.parcela + 1}/${parcela.total_parcelas} 
+        Vencimento: ${formatarData(parcela.vencimento)} 
+        Valor: R$ ${parcela.valor.toFixed(2)} 
+        Status: ${statusText}</p>
+    </div>
+`;
+                    });
+
+                    clienteDiv.innerHTML = `
+                        <div class="payment-header">
+                            <h3>${cliente.nome} - Contrato: ${cliente.parcelas[0].contrato} - CPF: ${formatarCPF(cliente.cpf)}</h3>
+                            <button class="toggle-details-btn" onclick="togglePaymentDetails(this)">
+                                Mostrar Detalhes
+                            </button>
+                        </div>
+                        <div class="payment-details">
+                            ${parcelasHTML}
+                        </div>
+                    `;
+
+                    statusContainer.appendChild(clienteDiv);
+                }
+            });
+
+            if (statusContainer.children.length === 0) {
+                statusContainer.innerHTML = '<p>Nenhum pagamento pendente encontrado.</p>';
+            }
+        }
+
+        function filtrarPagamentos() {
+            carregarPagamentos();
+        }
+
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        function formatarCPF(cpf) {
+            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function clienteCorrespondeAPesquisa(cliente, termo) {
+            return cliente.nome.toLowerCase().includes(termo) ||
+                   cliente.cpf.toLowerCase().includes(termo) ||
+                   cliente.parcelas.some(p => p.contrato.toLowerCase().includes(termo));
+        }
+
+        function togglePaymentDetails(button) {
+            const detailsDiv = button.parentElement.nextElementSibling;
+            if (detailsDiv.style.display === 'none' || detailsDiv.style.display === '') {
+                detailsDiv.style.display = 'block';
+                button.textContent = 'Ocultar Detalhes';
+            } else {
+                detailsDiv.style.display = 'none';
+                button.textContent = 'Mostrar Detalhes';
+            }
+        }
+
+        // Carregar pagamentos ao iniciar a página
+        document.addEventListener('DOMContentLoaded', carregarPagamentos);
+    </script>
+</body>
+</html>
