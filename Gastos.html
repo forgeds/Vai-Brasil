@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Gastos</title>
+    <!-- Adicionar biblioteca SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+       :root {
+  --primary-color: #2196f3;
+  --secondary-color: #1976d2;
+  --background-color: #f5f5f5;
+  --card-background: #ffffff;
+  --text-color: #333333;
+  --border-radius: 10px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  background-color: var(--card-background);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  margin-bottom: 15px;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.btn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  margin-top: 30px;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #eeeeee;
+}
+
+th {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+tr:hover {
+  background-color: #f8f9fa;
+}
+
+.export-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-button:hover {
+            background-color: #218838;
+        }
+
+        .export-button i {
+            font-size: 1.2rem;
+        }
+
+/* Responsividade */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .form-group {
+    padding: 15px;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-group, table {
+  animation: fadeIn 0.5s ease-out;
+}
+    </style>
+</head>
+<body>
+    <h1>Controle de Gastos</h1>
+    
+    <div class="form-group">
+        <form id="gastoForm">
+            <div class="form-group">
+                <label>Valor Gasto:</label>
+                <input type="number" id="valor" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Produto:</label>
+                <input type="text" id="produto" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Data:</label>
+                <input type="date" id="data" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn">Adicionar Gasto</button>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Valor Gasto</th>
+                <th>Produto</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="gastosList">
+        </tbody>
+    </table>
+    <button onclick="exportarParaExcel()" class="export-button">
+        <i class="fas fa-file-excel"></i>
+        Exportar para Excel
+    </button>
+    <script>
+        let gastos = JSON.parse(localStorage.getItem('gastos') || '[]');
+        
+        document.getElementById('gastoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const gasto = {
+                id: Date.now(),
+                valor: parseFloat(document.getElementById('valor').value),
+                produto: document.getElementById('produto').value,
+                data: document.getElementById('data').value
+            };
+            
+            gastos.push(gasto);
+            localStorage.setItem('gastos', JSON.stringify(gastos));
+            
+            this.reset();
+            atualizarLista();
+        });
+        
+        function atualizarLista() {
+            const lista = document.getElementById('gastosList');
+            lista.innerHTML = '';
+            
+            gastos.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            gastos.forEach(gasto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>R$ ${gasto.valor.toFixed(2)}</td>
+                    <td>${gasto.produto}</td>
+                    <td>${new Date(gasto.data).toLocaleDateString()}</td>
+                    <td>
+                        <button onclick="excluirGasto(${gasto.id})" class="btn">Excluir</button>
+                    </td>
+                `;
+                lista.appendChild(row);
+            });
+        }
+        
+        function excluirGasto(id) {
+            if (confirm('Deseja realmente excluir este gasto?')) {
+                gastos = gastos.filter(gasto => gasto.id !== id);
+                localStorage.setItem('gastos', JSON.stringify(gastos));
+                atualizarLista();
+            }
+        }
+        
+        // Carregar lista inicial
+        atualizarLista();
+
+        function exportarParaExcel() {
+            // Obter os dados da tabela
+            const gastos = JSON.parse(localStorage.getItem('gastos') || '[]');
+            
+            // Formatar os dados para o Excel
+            const dadosExcel = gastos.map(gasto => ({
+                'Valor Gasto': gasto.valor,
+                'Produto': gasto.produto,
+                'Data': new Date(gasto.data).toLocaleDateString(),
+            }));
+
+            // Criar uma nova planilha
+            const ws = XLSX.utils.json_to_sheet(dadosExcel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Gastos");
+
+            // Gerar o arquivo Excel
+            const nomeArquivo = `controle-gastos-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, nomeArquivo);
+        }
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Dados</title>
+    <link href="stylesheet.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navigation-bar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'" class="nav-button">
+                <span class="nav-icon">üìù</span>
+                Cadastro
+            </button>
+            <button onclick="window.location.href='Boletos.html'" class="nav-button">
+                <span class="nav-icon">üìÑ</span>
+                Boletos
+            </button>
+            <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
+                <span class="nav-icon">‚öôÔ∏è</span>
+                Gerenciamento
+            </button>
+        </div>
+    </nav>
+
+    <div class="export-container">
+        <h1>Exportar Dados</h1>
+        
+        <div class="cliente-card">
+            <h2>Exportar Detalhes de Pagamentos</h2>
+            <p>Formato: Nome, Número do Contrato, Valor Pago</p>
+            <button onclick="exportarDetalhes()" class="primary">Exportar Detalhes</button>
+        </div>
+
+        <div class="cliente-card">
+            <h2>Resumo Financeiro</h2>
+            <div id="resumoInfo">
+                <p>Valor Total a Receber: <span id="valorTotal">R$ 0,00</span></p>
+                <p>Valor Recebido: <span id="valorRecebido">R$ 0,00</span></p>
+            </div>
+            <button onclick="exportarResumo()" class="primary">Exportar Resumo</button>
+            
+            <div class="chart-container" style="position: relative; height:300px; margin-top: 20px;">
+                <canvas id="graficoReceitas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        function exportarDetalhes() {
+            const parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+            
+            const dados = parcelas.map(p => ({
+                'Nome': p.nome,
+                'Número do Contrato': p.contrato,
+                'Valor Pago': p.paid ? formatarMoeda(p.valor) : 'R$ 0,00',
+                'Data Vencimento': new Date(p.vencimento).toLocaleDateString('pt-BR'),
+                'Status': p.paid ? 'Pago' : 'Pendente'
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(dados);
+            XLSX.utils.book_append_sheet(wb, ws, "Detalhes");
+            XLSX.writeFile(wb, "detalhes_pagamentos.xlsx");
+        }
+
+        function exportarResumo() {
+            const parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+            const valorTotal = parcelas.reduce((sum, p) => sum + p.valor, 0);
+            const valorRecebido = parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
+
+            const dados = [{
+                'Valor Total a Receber': formatarMoeda(valorTotal),
+                'Valor Recebido': formatarMoeda(valorRecebido),
+                'Valor Pendente': formatarMoeda(valorTotal - valorRecebido),
+                'Percentual Recebido': ((valorRecebido / valorTotal) * 100).toFixed(2) + '%'
+            }];
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(dados);
+            XLSX.utils.book_append_sheet(wb, ws, "Resumo");
+            XLSX.writeFile(wb, "resumo_financeiro.xlsx");
+        }
+
+        function atualizarDados() {
+            const parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+            const valorTotal = parcelas.reduce((sum, p) => sum + p.valor, 0);
+            const valorRecebido = parcelas.filter(p => p.paid).reduce((sum, p) => sum + p.valor, 0);
+
+            document.getElementById('valorTotal').textContent = formatarMoeda(valorTotal);
+            document.getElementById('valorRecebido').textContent = formatarMoeda(valorRecebido);
+
+            // Criar gráfico
+            const ctx = document.getElementById('graficoReceitas').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Recebido', 'A Receber'],
+                    datasets: [{
+                        data: [valorRecebido, valorTotal - valorRecebido],
+                        backgroundColor: ['#4CAF50', '#f44336']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inicializar dados ao carregar a página
+        document.addEventListener('DOMContentLoaded', atualizarDados);
+    </script>
+</body>
+</html>

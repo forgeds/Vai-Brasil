@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Dados</title>
+    <link href="stylesheet.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navigation-bar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'" class="nav-button">
+                <span class="nav-icon">üìù</span>
+                Cadastro
+            </button>
+            <button onclick="window.location.href='Boletos.html'" class="nav-button">
+                <span class="nav-icon">üìÑ</span>
+                Boletos
+            </button>
+            <button onclick="window.location.href='gerenciamento.html'" class="nav-button">
+                <span class="nav-icon">‚öôÔ∏è</span>
+                Gerenciamento
+            </button>
+        </div>
+    </nav>
+
+    <div class="cliente-card">
+        <h2>Exportar por Período</h2>
+        <div class="form-group">
+            <label for="mesInicio">Mês Inicial:</label>
+            <input type="month" id="mesInicio" class="form-control">
+            
+            <label for="mesFim">Mês Final:</label>
+            <input type="month" id="mesFim" class="form-control">
+            
+            <button onclick="exportarPorPeriodo()" class="primary">Exportar Período</button>
+        </div>
+        
+        <div id="resumoPeriodo" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        // Carregar dados do localStorage
+        let parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        function exportarPorPeriodo() {
+    const mesInicio = document.getElementById('mesInicio').value;
+    const mesFim = document.getElementById('mesFim').value;
+    
+    if (!mesInicio || !mesFim) {
+        alert('Por favor, selecione o período inicial e final.');
+        return;
+    }
+
+    const dataInicio = new Date(mesInicio + '-01');
+    const dataFim = new Date(mesFim + '-31');
+
+    // Filtrar parcelas do período
+    const parcelasPeriodo = parcelas.filter(p => {
+        const dataVencimento = new Date(p.vencimento);
+        return dataVencimento >= dataInicio && dataVencimento <= dataFim;
+    });
+
+    // Agrupar por mês
+    const pagamentosPorMes = {};
+    parcelasPeriodo.forEach(p => {
+        const dataVencimento = new Date(p.vencimento);
+        const chaveData = `${dataVencimento.getFullYear()}-${(dataVencimento.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        if (!pagamentosPorMes[chaveData]) {
+            pagamentosPorMes[chaveData] = {
+                mes: chaveData,
+                totalPrevisto: 0,
+                totalRecebido: 0,
+                totalPendente: 0,
+                quantidadeTotal: 0,
+                quantidadePaga: 0,
+                pagamentos: []
+            };
+        }
+        
+        const registro = pagamentosPorMes[chaveData];
+        registro.totalPrevisto += p.valor;
+        registro.quantidadeTotal++;
+        
+        if (p.paid) {
+            registro.totalRecebido += p.valor;
+            registro.quantidadePaga++;
+        } else {
+            registro.totalPendente += p.valor;
+        }
+        
+        registro.pagamentos.push(p);
+    });
+
+    // Preparar dados para exportação
+    const dadosExportacao = Object.entries(pagamentosPorMes)
+        .sort(([mesA], [mesB]) => mesA.localeCompare(mesB))
+        .map(([mes, dados]) => ({
+            'Mês/Ano': `${mes.split('-')[1]}/${mes.split('-')[0]}`,
+            'Total Previsto': formatarMoeda(dados.totalPrevisto),
+            'Total Recebido': formatarMoeda(dados.totalRecebido),
+            'Total Pendente': formatarMoeda(dados.totalPendente),
+            'Quantidade Total': dados.quantidadeTotal,
+            'Quantidade Paga': dados.quantidadePaga,
+            'Percentual Recebido': ((dados.totalRecebido / dados.totalPrevisto) * 100).toFixed(2) + '%'
+        }));
+
+    // Criar planilha Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Adicionar resumo mensal
+    const wsResumo = XLSX.utils.json_to_sheet(dadosExportacao);
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo Mensal");
+
+    // Adicionar detalhamento
+    const detalhamento = parcelasPeriodo.map(p => ({
+        'Mês/Ano': `${new Date(p.vencimento).getMonth() + 1}/${new Date(p.vencimento).getFullYear()}`,
+        'Cliente': p.nome,
+        'CPF': p.cpf,
+        'Contrato': p.contrato,
+        'Parcela': `${p.parcela}/${p.total_parcelas}`,
+        'Vencimento': new Date(p.vencimento).toLocaleDateString('pt-BR'),
+        'Valor': formatarMoeda(p.valor),
+        'Status': p.paid ? 'Pago' : 'Pendente'
+    }));
+
+    const wsDetalhes = XLSX.utils.json_to_sheet(detalhamento);
+    XLSX.utils.book_append_sheet(wb, wsDetalhes, "Detalhamento");
+
+    // Exportar arquivo
+    XLSX.writeFile(wb, `relatorio_${mesInicio}_a_${mesFim}.xlsx`);
+
+    // Atualizar resumo na tela
+    mostrarResumoPeriodo(dadosExportacao);
+}
+
+function mostrarResumoPeriodo(dados) {
+    const totalGeral = dados.reduce((sum, mes) => {
+        const valor = parseFloat(mes['Total Recebido'].replace(/[^\d,]/g, '').replace(',', '.'));
+        return sum + valor;
+    }, 0);
+
+    const resumoHTML = `
+        <h3>Resumo do Período</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mês/Ano</th>
+                    <th>Total Previsto</th>
+                    <th>Total Recebido</th>
+                    <th>Total Pendente</th>
+                    <th>Parcelas Pagas</th>
+                    <th>% Recebido</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dados.map(mes => `
+                    <tr>
+                        <td>${mes['Mês/Ano']}</td>
+                        <td>${mes['Total Previsto']}</td>
+                        <td>${mes['Total Recebido']}</td>
+                        <td>${mes['Total Pendente']}</td>
+                        <td>${mes['Quantidade Paga']}/${mes['Quantidade Total']}</td>
+                        <td>${mes['Percentual Recebido']}</td>
+                    </tr>
+                `).join('')}
+                <tr>
+                    <td><strong>Total Geral</strong></td>
+                    <td colspan="5"><strong>${formatarMoeda(totalGeral)}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('resumoPeriodo').innerHTML = resumoHTML;
+}
+    </script>
+</body>
+</html>

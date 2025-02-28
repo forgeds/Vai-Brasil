@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contatos dos Contratos</title>
+    <link href="stylesheet.css" rel="stylesheet">
+    <style>
+        /* ... (estilos anteriores) ... */
+
+        .contact-list {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .contact-info {
+            margin-bottom: 15px;
+        }
+
+        .contract-number {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation-bar">
+        <!-- ... (navegação existente) ... -->
+    </nav>
+
+    <div class="container">
+        <h1>Contatos dos Contratos</h1>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar por contrato ou nome...">
+        </div>
+
+        <div id="contactList" class="contact-list"></div>
+    </div>
+
+    <script>
+        // Carregar dados dos contratos do localStorage
+        const parcelas = JSON.parse(localStorage.getItem('parcelas') || '[]');
+        
+        // Carregar contatos salvos
+        let contatos = JSON.parse(localStorage.getItem('contatos') || '{}');
+
+        function formatarTelefone(telefone) {
+            telefone = telefone.replace(/\D/g, '');
+            if (telefone.length === 11) {
+                return `(${telefone.slice(0,2)}) ${telefone.slice(2,7)}-${telefone.slice(7)}`;
+            }
+            return telefone;
+        }
+
+        function salvarTelefone(contratoId) {
+    const telefone = document.getElementById(`telefone-${contratoId}`).value;
+    if (telefone) {
+        // Atualiza o objeto de contatos (opcional, para exibição)
+        contatos[contratoId] = formatarTelefone(telefone);
+        localStorage.setItem('contatos', JSON.stringify(contatos));
+
+        // Atualiza cada parcela que pertença a esse contrato
+        parcelas = parcelas.map(p => {
+            if (p.contrato_id === contratoId) {
+                p.telefone = telefone;
+            }
+            return p;
+        });
+        localStorage.setItem('parcelas', JSON.stringify(parcelas));
+
+        atualizarLista();
+    }
+}
+
+        function atualizarLista(searchTerm = '') {
+            const contactList = document.getElementById('contactList');
+            contactList.innerHTML = '';
+
+            // Agrupar parcelas por contrato
+            const contratos = {};
+            parcelas.forEach(p => {
+                if (!contratos[p.contrato_id]) {
+                    contratos[p.contrato_id] = {
+                        id: p.contrato_id,
+                        numero: p.contrato,
+                        nome: p.nome,
+                        cpf: p.cpf
+                    };
+                }
+            });
+
+            // Converter para array e ordenar por número do contrato
+            const contratosOrdenados = Object.values(contratos).sort((a, b) => {
+                // Extrair números dos contratos para comparação numérica
+                const numA = parseInt(a.numero.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.numero.replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+
+            // Filtrar e exibir contratos
+            contratosOrdenados
+                .filter(contrato => 
+                    contrato.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    contrato.nome.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .forEach(contrato => {
+                    const card = document.createElement('div');
+                    card.className = 'contact-card';
+
+                    const telefoneAtual = contatos[contrato.id] || '';
+
+                    card.innerHTML = `
+                        <div class="contract-number">Contrato: ${contrato.numero}</div>
+                        <div class="contact-info">
+                            <strong>Nome:</strong> ${contrato.nome}<br>
+                            <strong>CPF:</strong> ${contrato.cpf}
+                        </div>
+                        <div class="phone-input">
+                            <input 
+                                type="tel" 
+                                id="telefone-${contrato.id}" 
+                                class="form-control" 
+                                placeholder="Digite o telefone"
+                                value="${telefoneAtual}"
+                                oninput="this.value = formatarTelefone(this.value)"
+                            >
+                            <button onclick="salvarTelefone('${contrato.id}')" class="btn">
+                                Salvar
+                            </button>
+                        </div>
+                        ${telefoneAtual ? `
+                            <div class="phone-number">
+                                <span class="phone-tag">Telefone</span>
+                                ${telefoneAtual}
+                            </div>
+                        ` : ''}
+                    `;
+
+                    contactList.appendChild(card);
+                });
+        }
+
+        // Pesquisa em tempo real
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            atualizarLista(e.target.value);
+        });
+
+        // Inicializar lista
+        atualizarLista();
+    </script>
+</body>
+</html>

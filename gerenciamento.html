@@ -99,6 +99,12 @@
                 <h3>Valor Recebido</h3>
                 <p id="valorRecebido">R$ 0,00</p>
             </div>
+            <!-- Add the new export card here -->
+            <div class="summary-card">
+                <h3>Exportar Dados</h3>
+                <button onclick="exportarDetalhado()">Exportar Detalhado</button>
+                <button onclick="exportarResumo()">Exportar Resumo</button>
+            </div>
         </div>
 
         <div class="search-box">
@@ -244,6 +250,74 @@
             displayPayments();
             updateSummary();
         });
+
+        function exportarDetalhado() {
+    // Create CSV content for detailed export
+    let csvContent = "Nome,Número do Contrato,Valor Pago,Valor Devido\n";
+    
+    // Group by contract
+    const contratos = {};
+    payments.forEach(p => {
+        if (!contratos[p.contrato_id]) {
+            contratos[p.contrato_id] = {
+                nome: p.nome,
+                contrato: p.contrato,
+                valorPago: 0,
+                valorDevido: 0
+            };
+        }
+        if (p.paid) {
+            contratos[p.contrato_id].valorPago += p.valor;
+        } else {
+            contratos[p.contrato_id].valorDevido += p.valor;
+        }
+    });
+
+    // Create CSV rows
+    Object.values(contratos).forEach(c => {
+        csvContent += `${c.nome},${c.contrato},R$ ${c.valorPago.toFixed(2)},R$ ${c.valorDevido.toFixed(2)}\n`;
+    });
+
+    downloadCSV(csvContent, 'contratos_detalhado.csv');
+}
+
+function exportarResumo() {
+    // Create CSV content for summary export
+    let csvContent = "Mês/Ano,Valor Recebido\n";
+    
+    // Group payments by month
+    const pagamentosPorMes = {};
+    payments.filter(p => p.paid).forEach(p => {
+        const data = new Date(p.vencimento);
+        const mesAno = `${data.getMonth() + 1}/${data.getFullYear()}`;
+        
+        if (!pagamentosPorMes[mesAno]) {
+            pagamentosPorMes[mesAno] = 0;
+        }
+        pagamentosPorMes[mesAno] += p.valor;
+    });
+
+    // Create CSV rows
+    Object.entries(pagamentosPorMes).forEach(([mesAno, valor]) => {
+        csvContent += `${mesAno},R$ ${valor.toFixed(2)}\n`;
+    });
+
+    downloadCSV(csvContent, 'resumo_pagamentos.csv');
+}
+
+function downloadCSV(content, filename) {
+    const blob = new Blob(["\ufeff" + content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
     </script>
 </body>
 </html>
